@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMMM Mükellef Evrak Takip Paneli</title>
+    <style>
+        :root {
+            --primary: #047857;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text-main); padding: 24px; }
+        .container { max-width: 1240px; margin: 0 auto; }
+
+        .topbar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: white; padding: 20px 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px;
+        }
+        .topbar h1 { font-size: 1.35rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card {
+            background: white; border: 1px solid var(--border); border-radius: 10px; padding: 18px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .stat-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .stat-value { font-size: 1.7rem; font-weight: 800; color: #0f172a; }
+
+        /* Table */
+        .table-card { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .table-header {
+            padding: 16px 20px; border-bottom: 1px solid var(--border); background: #fafafa;
+            display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+        }
+        .search-input {
+            padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; width: 300px; outline: none;
+        }
+        .btn {
+            padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            border: 1px solid var(--border); background: white; color: #334155; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn:hover { background: #f1f5f9; }
+        .btn-primary { background: var(--primary); color: white; border: none; }
+        .btn-primary:hover { background: #065f46; }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.86rem; }
+        th { background: #f8fafc; padding: 12px 16px; border-bottom: 1px solid var(--border); color: #475569; font-weight: 600; }
+        td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        tr:hover { background: #f8fafc; }
+
+        .btn-wa {
+            background: #25D366; color: white; border: none; padding: 5px 10px; border-radius: 6px;
+            font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+        }
+        .btn-wa:hover { background: #20bd5a; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="topbar">
+        <h1>📊 SMMM Mükellef Aylık Evrak Takip & Kontrol Paneli</h1>
+        <div style="display: flex; gap: 10px;">
+            <a href="index.html" class="btn" target="_blank">🌐 Evrak Portalı</a>
+            <button class="btn btn-primary" onclick="exportCsv()">📥 CSV İndir</button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-title">Teslim Eden Mükellefler</span>
+            <span class="stat-value" id="statTotal">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-title">İncelenmeyi Bekleyen</span>
+            <span class="stat-value" id="statPending" style="color: var(--warning);">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-title">Eksik Evrak Bildirilen</span>
+            <span class="stat-value" id="statMissing" style="color: var(--danger);">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-title">Muhasebeleştirilen</span>
+            <span class="stat-value" id="statDone" style="color: var(--success);">0</span>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+        <div class="table-header">
+            <input type="text" class="search-input" id="searchBox" placeholder="Firma, VKN veya Yetkili ara..." oninput="filterTable()">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Mükellefe tek tıkla WhatsApp üzerinden eksik evrak hatırlatması yapabilirsiniz.</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Teslim Ref No</th>
+                    <th>Mükellef Unvanı</th>
+                    <th>VKN / Yetkili</th>
+                    <th>Dönem</th>
+                    <th>Teslim Edilen Evraklar</th>
+                    <th>Durum</th>
+                    <th>WhatsApp Hatırlat</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+let records = [];
+
+async function loadRecords() {
+    try {
+        const res = await fetch('/api/evrak-listesi');
+        if (res.ok) {
+            records = await res.json();
+        }
+    } catch (e) {
+        records = JSON.parse(localStorage.getItem('smmm_evraklar') || '[]');
+    }
+
+    if (records.length === 0) {
+        records = [
+            {
+                receipt_no: "TESLIM-2026-03-4921",
+                company_name: "Yıldız Mimarlık Tasarım Ltd. Şti.",
+                vkn: "9820481920",
+                contact_name: "Gökhan Yıldız",
+                phone: "0533 222 11 00",
+                period: "Mart 2026",
+                delivered_docs: ["Alış Faturaları (18 Adet)", "Banka Ekstresi (Garanti PDF)", "Kira Dekontu"],
+                status: "İnceleniyor",
+                created_at: new Date().toISOString()
+            },
+            {
+                receipt_no: "TESLIM-2026-03-1184",
+                company_name: "Erden Gıda Dağıtım A.Ş.",
+                vkn: "3481920194",
+                contact_name: "Mustafa Erden",
+                phone: "0542 666 77 88",
+                period: "Mart 2026",
+                delivered_docs: ["Satış Faturaları", "Z-Raporları (31 Gün)"],
+                status: "Eksik Evrak Var",
+                created_at: new Date(Date.now() - 2 * 86400000).toISOString()
+            }
+        ];
+        localStorage.setItem('smmm_evraklar', JSON.stringify(records));
+    }
+
+    renderTable(records);
+    updateStats();
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    data.forEach((r, idx) => {
+        const docsSummary = Array.isArray(r.delivered_docs) ? r.delivered_docs.join(', ') : r.delivered_docs;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><b>${r.receipt_no}</b></td>
+            <td><b>${r.company_name}</b></td>
+            <td>${r.vkn}<br><small style="color:#64748b;">${r.contact_name} (${r.phone})</small></td>
+            <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-weight:700; font-size:0.75rem;">${r.period}</span></td>
+            <td><small style="color:#334155;">${docsSummary}</small></td>
+            <td>
+                <select onchange="updateStatus(${idx}, this.value)" style="padding: 4px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.78rem;">
+                    <option value="İnceleniyor" ${r.status === 'İnceleniyor' ? 'selected' : ''}>İnceleniyor</option>
+                    <option value="Eksik Evrak Var" ${r.status === 'Eksik Evrak Var' ? 'selected' : ''}>Eksik Evrak Var</option>
+                    <option value="Muhasebeleştirildi" ${r.status === 'Muhasebeleştirildi' ? 'selected' : ''}>Muhasebeleştirildi</option>
+                </select>
+            </td>
+            <td>
+                <button class="btn-wa" onclick="sendWaReminder('${r.phone}', '${r.company_name}', '${r.period}')">
+                    <span>💬 Hatırlat</span>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function updateStatus(idx, status) {
+    records[idx].status = status;
+    localStorage.setItem('smmm_evraklar', JSON.stringify(records));
+    updateStats();
+}
+
+function sendWaReminder(phone, company, period) {
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const msg = encodeURIComponent(`Sayın ${company} yetkilisi, ${period} dönemi KDV ve yasal beyanname hazırlıkları için eksik evraklarınızı lütfen gün içinde muhasebe portalımıza yükleyiniz.`);
+    window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
+}
+
+function updateStats() {
+    document.getElementById('statTotal').innerText = records.length;
+    let pending = 0, missing = 0, done = 0;
+    records.forEach(r => {
+        if (r.status === 'İnceleniyor') pending++;
+        if (r.status === 'Eksik Evrak Var') missing++;
+        if (r.status === 'Muhasebeleştirildi') done++;
+    });
+    document.getElementById('statPending').innerText = pending;
+    document.getElementById('statMissing').innerText = missing;
+    document.getElementById('statDone').innerText = done;
+}
+
+function filterTable() {
+    const q = document.getElementById('searchBox').value.toLowerCase().trim();
+    const filtered = records.filter(r =>
+        r.company_name.toLowerCase().includes(q) ||
+        r.vkn.includes(q) ||
+        r.contact_name.toLowerCase().includes(q)
+    );
+    renderTable(filtered);
+}
+
+function exportCsv() {
+    let csv = "Ref No,Firma,VKN,Yetkili,Telefon,Donem,Evraklar,Durum,Tarih\n";
+    records.forEach(r => {
+        const docs = Array.isArray(r.delivered_docs) ? r.delivered_docs.join('; ') : r.delivered_docs;
+        csv += `"${r.receipt_no}","${r.company_name}","${r.vkn}","${r.contact_name}","${r.phone}","${r.period}","${docs}","${r.status}","${r.created_at}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "smmm_mukellef_evraklari.csv";
+    link.click();
+}
+
+window.onload = loadRecords;
+</script>
+
+</body>
+</html>

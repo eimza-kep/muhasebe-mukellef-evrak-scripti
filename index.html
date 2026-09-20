@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mükellef Aylık Evrak Teslim Portalı | Mali Müşavirlik</title>
+    <style>
+        :root {
+            --primary: #047857;
+            --primary-hover: #065f46;
+            --secondary: #0f172a;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #16a34a;
+            --warning: #d97706;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.55; padding: 32px 16px; min-height: 100vh; }
+
+        .container { max-width: 880px; margin: 0 auto; }
+
+        /* Header */
+        .header {
+            text-align: center; margin-bottom: 28px; background: white; padding: 30px 24px;
+            border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            position: relative; overflow: hidden;
+        }
+        .header::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--primary);
+        }
+        .header-badge {
+            display: inline-block; background: #d1fae5; color: var(--primary);
+            font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; margin-bottom: 10px;
+        }
+        .header h1 { font-size: 1.6rem; color: var(--secondary); margin-bottom: 8px; font-weight: 800; }
+        .header p { font-size: 0.9rem; color: var(--text-muted); max-width: 680px; margin: 0 auto; }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+            padding: 26px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .card-title {
+            font-size: 1.05rem; font-weight: 700; color: var(--secondary); margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;
+        }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: span 2; }
+        label { font-size: 0.83rem; font-weight: 600; color: #334155; }
+        label span.req { color: #dc2626; margin-left: 2px; }
+
+        input, select, textarea {
+            width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+            font-size: 0.88rem; outline: none; background: #f8fafc; color: var(--text-main);
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.1); }
+        textarea { min-height: 80px; resize: vertical; }
+
+        /* Checklist Items */
+        .checklist { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+        .check-item {
+            display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+            background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; transition: all 0.15s;
+        }
+        .check-item:hover { background: #f0fdf4; border-color: #86efac; }
+        .check-label { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 500; cursor: pointer; }
+        .check-label input { width: 18px; height: 18px; margin: 0; cursor: pointer; }
+        .doc-count { width: 90px; padding: 6px 10px; font-size: 0.8rem; text-align: center; }
+
+        /* Dropzone */
+        .dropzone {
+            border: 2px dashed #86efac; border-radius: 10px; padding: 28px; text-align: center;
+            background: #f0fdf4; cursor: pointer; transition: all 0.2s;
+        }
+        .dropzone:hover { background: #dcfce7; }
+        .dropzone-icon { font-size: 2.2rem; margin-bottom: 6px; }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%; background: var(--primary); color: white; border: none; padding: 14px;
+            border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-submit:hover { background: var(--primary-hover); }
+
+        /* Success View */
+        .receipt-view {
+            display: none; background: white; border: 2px solid #86efac; border-radius: 12px;
+            padding: 36px 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); text-align: center;
+        }
+        .receipt-badge {
+            display: inline-block; background: #dcfce7; border: 2px dashed #16a34a; color: #166534;
+            font-size: 1.35rem; font-weight: 800; padding: 8px 24px; border-radius: 8px; margin: 16px 0; letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: span 1; }
+            .check-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .doc-count { width: 100%; text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="header-badge">SMMM & MALİ MÜŞAVİRLİK HİZMETLERİ</div>
+        <h1>Mükellef Aylık Evrak Teslim Portalı</h1>
+        <p>
+            KDV, Muhtasar ve Geçici Vergi beyannamelerinizin yasal süresinde ve eksiksiz hazırlanabilmesi için ilgili döneme ait fatura, dekont ve ekstrelerinizi güvenle teslim ediniz.
+        </p>
+    </div>
+
+    <form id="evrakForm" onsubmit="submitEvrakForm(event)">
+        <!-- 1. Mükellef Bilgileri & Dönem -->
+        <div class="card">
+            <h2 class="card-title">🏢 1. Mükellef ve Beyanname Dönemi</h2>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Şirket Ticari Unvanı / Mükellef Adı <span class="req">*</span></label>
+                    <input type="text" id="companyName" required placeholder="Örn: Özkan Mühendislik İnşaat San. Tic. Ltd. Şti.">
+                </div>
+                <div class="form-group">
+                    <label>Vergi Kimlik No (VKN) / TCKN <span class="req">*</span></label>
+                    <input type="text" id="vkn" required placeholder="10 haneli VKN veya 11 haneli TCKN">
+                </div>
+                <div class="form-group">
+                    <label>Teslim Eden Yetkili Adı Soyadı <span class="req">*</span></label>
+                    <input type="text" id="contactName" required placeholder="Yetkili Kişi">
+                </div>
+                <div class="form-group">
+                    <label>Yetkili WhatsApp / GSM No <span class="req">*</span></label>
+                    <input type="tel" id="phone" required placeholder="05XX XXX XX XX">
+                </div>
+                <div class="form-group">
+                    <label>Beyanname Dönemi (Ay ve Yıl) <span class="req">*</span></label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="periodMonth" required style="flex: 2;">
+                            <option value="Ocak">Ocak</option>
+                            <option value="Şubat">Şubat</option>
+                            <option value="Mart" selected>Mart</option>
+                            <option value="Nisan">Nisan</option>
+                            <option value="Mayıs">Mayıs</option>
+                            <option value="Haziran">Haziran</option>
+                            <option value="Temmuz">Temmuz</option>
+                            <option value="Ağustos">Ağustos</option>
+                            <option value="Eylül">Eylül</option>
+                            <option value="Ekim">Ekim</option>
+                            <option value="Kasım">Kasım</option>
+                            <option value="Aralık">Aralık</option>
+                        </select>
+                        <select id="periodYear" required style="flex: 1;">
+                            <option value="2026" selected>2026</option>
+                            <option value="2025">2025</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Evrak Kontrol Listesi -->
+        <div class="card">
+            <h2 class="card-title">📋 2. Aylık Evrak Kontrol Listesi (Checklist)</h2>
+            <p style="font-size: 0.82rem; color: #64748b; margin-bottom: 12px;">Teslim ettiğiniz evrak gruplarını işaretleyip yaklaşık adet/sayfa sayısını belirtiniz:</p>
+            
+            <div class="checklist">
+                <div class="check-item">
+                    <label class="check-label" for="doc1">
+                        <input type="checkbox" id="doc1" value="Alış Faturaları & Gider Fişleri" checked>
+                        <span>🧾 Alış Faturaları & Akaryakıt/Gider Fişleri</span>
+                    </label>
+                    <input type="text" id="count1" class="doc-count" placeholder="Adet/Sayfa">
+                </div>
+                <div class="check-item">
+                    <label class="check-label" for="doc2">
+                        <input type="checkbox" id="doc2" value="Satış Faturaları (e-Arşiv / e-Fatura / e-SMM)" checked>
+                        <span>📈 Satış Faturaları (e-Arşiv / e-Fatura / e-SMM Raporu)</span>
+                    </label>
+                    <input type="text" id="count2" class="doc-count" placeholder="Adet/Sayfa">
+                </div>
+                <div class="check-item">
+                    <label class="check-label" for="doc3">
+                        <input type="checkbox" id="doc3" value="Banka Hesap Ekstreleri">
+                        <span>🏦 Banka Hesap Ekstreleri (PDF veya Excel Dökümü)</span>
+                    </label>
+                    <input type="text" id="count3" class="doc-count" placeholder="Adet/Sayfa">
+                </div>
+                <div class="check-item">
+                    <label class="check-label" for="doc4">
+                        <input type="checkbox" id="doc4" value="ÖKC / Yazar Kasa Aylık Z-Raporları">
+                        <span>🎰 Yazar Kasa / ÖKC Aylık Kümülatif Z-Raporu</span>
+                    </label>
+                    <input type="text" id="count4" class="doc-count" placeholder="Adet/Sayfa">
+                </div>
+                <div class="check-item">
+                    <label class="check-label" for="doc5">
+                        <input type="checkbox" id="doc5" value="POS Günlük Gün Sonu ve Komisyon Raporu">
+                        <span>💳 POS Gün Sonu ve Banka Komisyon Raporları</span>
+                    </label>
+                    <input type="text" id="count5" class="doc-count" placeholder="Adet/Sayfa">
+                </div>
+                <div class="check-item">
+                    <label class="check-label" for="doc6">
+                        <input type="checkbox" id="doc6" value="İşyeri Kira Ödeme Banka Dekontu">
+                        <span>🏠 İşyeri Kira Ödeme Dekontu</span>
+                    </label>
+                    <input type="text" id="count6" class="doc-count" placeholder="Adet/Sayfa">
+                </div>
+                <div class="check-item">
+                    <label class="check-label" for="doc7">
+                        <input type="checkbox" id="doc7" value="Personel İşe Giriş/Çıkış & Bordro Masraf Fişleri">
+                        <span>👥 Personel Giriş/Çıkış, Rapor ve Masraf Formları</span>
+                    </label>
+                    <input type="text" id="count7" class="doc-count" placeholder="Adet/Sayfa">
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Dosya Yükleme & Dijital Beyan -->
+        <div class="card">
+            <h2 class="card-title">📁 3. Dijital Dosya Yükleme & Teslim Beyanı</h2>
+            
+            <div class="dropzone" onclick="document.getElementById('fileUpload').click()">
+                <div class="dropzone-icon">☁️</div>
+                <div style="font-weight: 700; font-size: 0.95rem; color: var(--primary);">Evrak Dosyalarınızı (PDF, Excel, ZIP veya Fiş Görselleri) Seçin</div>
+                <div style="font-size: 0.78rem; color: #64748b; margin-top: 4px;">Toplu yükleme için dosyaları tek bir .ZIP arşivi yapabilirsiniz.</div>
+                <input type="file" id="fileUpload" multiple style="display: none;" onchange="handleFileSelect(this)">
+                <div id="fileListDisplay" style="margin-top: 10px; font-weight: 600; font-size: 0.82rem; color: #1e293b;"></div>
+            </div>
+
+            <div class="form-group full" style="margin-top: 18px;">
+                <label>Mali Müşavirinize Not / Özel Açıklama</label>
+                <textarea id="notes" placeholder="Bu ay gerçekleşen olağan dışı demirbaş alımı, kredi çekimi veya özellikli işlemleri yazınız..."></textarea>
+            </div>
+
+            <div style="margin-top: 18px; display: flex; align-items: flex-start; gap: 8px;">
+                <input type="checkbox" id="confirmDelivery" required style="width: 18px; height: 18px; margin-top: 2px; cursor: pointer;">
+                <label for="confirmDelivery" style="font-size: 0.82rem; color: #475569; cursor: pointer;">
+                    İşbu form ile belirtilen döneme ait tüm yasal muhasebe evraklarımı eksiksiz, gerçeğe uygun ve zamanında mali müşavirlik bürosuna teslim ettiğimi, bildirilmeyen evraklardan doğacak vergi ziyaı ve cezai sorumlulukların mükellefe ait olduğunu beyan ederim.
+                </label>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+            <span>📥 Evrakları Teslim Et ve Tutanak Al</span>
+        </button>
+    </form>
+
+    <!-- Success View -->
+    <div class="receipt-view" id="receiptView">
+        <div style="font-size: 3rem; margin-bottom: 12px;">📑</div>
+        <h2 style="font-size: 1.45rem; color: var(--secondary);">Aylık Evrak Teslim Tutanağı Oluşturuldu</h2>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 6px;">
+            Evrak bildiriminiz mali müşavirlik kayıtlarımıza başarıyla işlenmiştir.
+        </p>
+
+        <div>
+            <span style="font-size: 0.85rem; color: #64748b;">Evrak Teslimat Ref No:</span><br>
+            <div class="receipt-badge" id="receiptNoDisplay">TESLIM-2026-00-0000</div>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; max-width: 540px; margin: 16px auto; font-size: 0.88rem; text-align: left; line-height: 1.8;">
+            <div><b>Mükellef Unvanı:</b> <span id="resCompany"></span></div>
+            <div><b>Vergi Kimlik No:</b> <span id="resVkn"></span></div>
+            <div><b>Teslim Dönemi:</b> <span id="resPeriod"></span></div>
+            <div><b>Teslim Eden Yetkili:</b> <span id="resContact"></span> (<span id="resPhone"></span>)</div>
+            <div><b>Teslim Edilen Evrak Türleri:</b><br><span id="resDocs" style="color: var(--primary); font-weight: 600;"></span></div>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 24px;">
+            <button class="btn-submit" style="width: auto; padding: 10px 22px;" onclick="window.print()">🖨️ Teslim Tutanağını Yazdır / PDF İndir</button>
+            <button class="btn-submit" style="width: auto; padding: 10px 22px; background: #e2e8f0; color: #334155;" onclick="location.reload()">➕ Yeni Evrak Bildirimi</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedFilesCount = 0;
+
+function handleFileSelect(input) {
+    selectedFilesCount = input.files.length;
+    const display = document.getElementById('fileListDisplay');
+    if (selectedFilesCount > 0) {
+        display.innerHTML = `✅ ${selectedFilesCount} adet dosya seçildi.`;
+    } else {
+        display.innerHTML = '';
+    }
+}
+
+async function submitEvrakForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerText = '⏳ Kaydediliyor...';
+
+    const deliveredDocs = [];
+    for (let i = 1; i <= 7; i++) {
+        const check = document.getElementById('doc' + i);
+        const count = document.getElementById('count' + i);
+        if (check && check.checked) {
+            const countStr = count && count.value.trim() ? ` (${count.value.trim()})` : '';
+            deliveredDocs.push(check.value + countStr);
+        }
+    }
+
+    const month = document.getElementById('periodMonth').value;
+    const year = document.getElementById('periodYear').value;
+
+    const payload = {
+        company_name: document.getElementById('companyName').value.trim(),
+        vkn: document.getElementById('vkn').value.trim(),
+        contact_name: document.getElementById('contactName').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        period: `${month} ${year}`,
+        delivered_docs: deliveredDocs,
+        notes: document.getElementById('notes').value.trim(),
+        files_count: selectedFilesCount,
+        created_at: new Date().toISOString()
+    };
+
+    let receiptNo = 'TESLIM-2026-' + Math.floor(1000 + Math.random() * 9000);
+
+    try {
+        const res = await fetch('/api/evrak-teslim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.receipt_no) receiptNo = data.receipt_no;
+        }
+    } catch (err) {
+        const local = JSON.parse(localStorage.getItem('smmm_evraklar') || '[]');
+        payload.receipt_no = receiptNo;
+        local.push(payload);
+        localStorage.setItem('smmm_evraklar', JSON.stringify(local));
+    }
+
+    document.getElementById('evrakForm').style.display = 'none';
+    document.getElementById('receiptView').style.display = 'block';
+    document.getElementById('receiptNoDisplay').innerText = receiptNo;
+    document.getElementById('resCompany').innerText = payload.company_name;
+    document.getElementById('resVkn').innerText = payload.vkn;
+    document.getElementById('resPeriod').innerText = payload.period;
+    document.getElementById('resContact').innerText = payload.contact_name;
+    document.getElementById('resPhone').innerText = payload.phone;
+    document.getElementById('resDocs').innerHTML = '• ' + payload.delivered_docs.join('<br>• ');
+}
+</script>
+
+</body>
+</html>
