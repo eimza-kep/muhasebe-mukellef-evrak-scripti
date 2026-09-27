@@ -55,6 +55,19 @@ python server.py
 
 ---
 
+## 🌐 E-Dönüşüm Açık Kaynak Ekosistemi
+
+Bu script, [@eimza-kep](https://github.com/eimza-kep) açık kaynak ekosisteminin muhasebe ofisi iş akışı bileşenidir. İlgili diğer araçlar:
+
+* 📊 [muhasebe-excel-sablonlari](https://github.com/eimza-kep/muhasebe-excel-sablonlari) - e-SMM, Tevkifat, Kıdem ve Bordro hesaplayıcıları.
+* 📄 [e-fatura-xml-goruntuleyici](https://github.com/eimza-kep/e-fatura-xml-goruntuleyici) - Mükellef e-Fatura ve e-İrsaliye XML dosyalarını ayrıştırma ve KDV dökümü.
+* 📑 [gib-edefter-berat-xml-dogrulayici](https://github.com/eimza-kep/gib-edefter-berat-xml-dogrulayici) - Aylık berat ve defter XML hash kontrolü.
+* 📋 [smmm-stok-sayim-tutanak-scripti](https://github.com/eimza-kep/smmm-stok-sayim-tutanak-scripti) - Yıl sonu ve dönemlik fiili stok sayım tutanağı hazırlayıcı.
+* 🌟 [awesome-turkiye-e-donusum](https://github.com/eimza-kep/awesome-turkiye-e-donusum) - Türkiye e-Dönüşüm açık kaynak araçları ve kütüphaneleri kürasyonu.
+
+---
+
 ## 📜 Lisans
 
 Bu proje [MIT Lisansı](LICENSE) ile lisanslanmıştır. Mali müşavirler ve muhasebe büroları tarafından serbestçe kullanılabilir.
+
