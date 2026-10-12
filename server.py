@@ -17,8 +17,8 @@ from urllib.parse import urlparse
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-PORT = 8083
-DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "muhasebe_evraklar.db")
+PORT = int(os.environ.get("PORT", 8083))
+DB_FILE = os.environ.get("DATABASE_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "muhasebe_evraklar.db"))
 
 def init_db():
     with sqlite3.connect(DB_FILE) as conn:
