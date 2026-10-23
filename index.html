@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mükellef Aylık Evrak Teslim Portalı | Mali Müşavirlik</title>
+    <title>Mükellef Aylık Evrak & e-Fatura Teslim Portalı | SMMM Mali Müşavirlik</title>
     <style>
         :root {
             --primary: #047857;
             --primary-hover: #065f46;
+            --primary-light: #d1fae5;
             --secondary: #0f172a;
             --bg: #f8fafc;
             --card-bg: #ffffff;
@@ -16,16 +17,19 @@
             --text-muted: #64748b;
             --success: #16a34a;
             --warning: #d97706;
+            --danger: #dc2626;
+            --blue: #0284c7;
+            --blue-light: #e0f2fe;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { background: var(--bg); color: var(--text-main); line-height: 1.55; padding: 32px 16px; min-height: 100vh; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.55; padding: 24px 16px; min-height: 100vh; }
 
-        .container { max-width: 880px; margin: 0 auto; }
+        .container { max-width: 900px; margin: 0 auto; }
 
         /* Header */
         .header {
-            text-align: center; margin-bottom: 28px; background: white; padding: 30px 24px;
+            text-align: center; margin-bottom: 24px; background: white; padding: 28px 24px;
             border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             position: relative; overflow: hidden;
         }
@@ -33,27 +37,35 @@
             content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--primary);
         }
         .header-badge {
-            display: inline-block; background: #d1fae5; color: var(--primary);
+            display: inline-block; background: var(--primary-light); color: var(--primary);
             font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; margin-bottom: 10px;
         }
         .header h1 { font-size: 1.6rem; color: var(--secondary); margin-bottom: 8px; font-weight: 800; }
-        .header p { font-size: 0.9rem; color: var(--text-muted); max-width: 680px; margin: 0 auto; }
+        .header p { font-size: 0.88rem; color: var(--text-muted); max-width: 720px; margin: 0 auto; }
+
+        /* Tax Deadline Banner */
+        .deadline-banner {
+            background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid var(--warning);
+            border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: flex-start;
+            gap: 12px; font-size: 0.85rem; color: #92400e;
+        }
+        .deadline-banner b { color: #78350f; }
 
         /* Cards */
         .card {
             background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
-            padding: 26px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            padding: 24px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
         }
         .card-title {
             font-size: 1.05rem; font-weight: 700; color: var(--secondary); margin-bottom: 16px;
-            display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;
+            display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;
         }
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-group { display: flex; flex-direction: column; gap: 6px; }
         .form-group.full { grid-column: span 2; }
         label { font-size: 0.83rem; font-weight: 600; color: #334155; }
-        label span.req { color: #dc2626; margin-left: 2px; }
+        label span.req { color: var(--danger); margin-left: 2px; }
 
         input, select, textarea {
             width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
@@ -71,15 +83,39 @@
         .check-item:hover { background: #f0fdf4; border-color: #86efac; }
         .check-label { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 500; cursor: pointer; }
         .check-label input { width: 18px; height: 18px; margin: 0; cursor: pointer; }
-        .doc-count { width: 90px; padding: 6px 10px; font-size: 0.8rem; text-align: center; }
+        .doc-count { width: 100px; padding: 6px 10px; font-size: 0.8rem; text-align: center; }
 
         /* Dropzone */
         .dropzone {
-            border: 2px dashed #86efac; border-radius: 10px; padding: 28px; text-align: center;
-            background: #f0fdf4; cursor: pointer; transition: all 0.2s;
+            border: 2px dashed #10b981; border-radius: 12px; padding: 30px 20px; text-align: center;
+            background: #f0fdf4; cursor: pointer; transition: all 0.2s; position: relative;
         }
-        .dropzone:hover { background: #dcfce7; }
-        .dropzone-icon { font-size: 2.2rem; margin-bottom: 6px; }
+        .dropzone.dragover { background: #dcfce7; border-color: #059669; transform: scale(1.01); }
+        .dropzone:hover { background: #ecfdf5; }
+        .dropzone-icon { font-size: 2.4rem; margin-bottom: 6px; }
+
+        /* Parsed Invoices Preview */
+        .parsed-container {
+            margin-top: 18px; background: white; border: 1px solid #a7f3d0; border-radius: 10px;
+            padding: 16px; display: none;
+        }
+        .parsed-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+            padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;
+        }
+        .parsed-stats {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px;
+        }
+        .pstat {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;
+        }
+        .pstat-val { font-size: 1.1rem; font-weight: 800; color: #0f172a; }
+        .pstat-lbl { font-size: 0.72rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+
+        .invoice-table-wrapper { max-height: 220px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; }
+        .inv-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left; }
+        .inv-table th { background: #f1f5f9; padding: 8px 12px; font-weight: 600; color: #475569; position: sticky; top: 0; }
+        .inv-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 
         /* Submit Button */
         .btn-submit {
@@ -104,6 +140,7 @@
             .form-group.full { grid-column: span 1; }
             .check-item { flex-direction: column; align-items: flex-start; gap: 8px; }
             .doc-count { width: 100%; text-align: left; }
+            .parsed-stats { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -113,10 +150,20 @@
     <!-- Header -->
     <div class="header">
         <div class="header-badge">SMMM & MALİ MÜŞAVİRLİK HİZMETLERİ</div>
-        <h1>Mükellef Aylık Evrak Teslim Portalı</h1>
+        <h1>Mükellef Aylık Evrak & e-Fatura Teslim Portalı</h1>
         <p>
-            KDV, Muhtasar ve Geçici Vergi beyannamelerinizin yasal süresinde ve eksiksiz hazırlanabilmesi için ilgili döneme ait fatura, dekont ve ekstrelerinizi güvenle teslim ediniz.
+            KDV, Muhtasar ve Geçici Vergi beyannamelerinizin yasal süresinde ve eksiksiz hazırlanabilmesi için ilgili döneme ait fatura, dekont, ekstre ve e-Fatura/e-Arşiv XML dosyalarınızı güvenle teslim ediniz.
         </p>
+    </div>
+
+    <!-- Vergi Takvimi Hatırlatması -->
+    <div class="deadline-banner">
+        <div style="font-size: 1.4rem;">🗓️</div>
+        <div>
+            <b>Aylık Yasal Vergi ve Beyanname Takvimi Hatırlatması:</b><br>
+            • <b>KDV-1 & KDV-2:</b> Her ayın <b>28'i</b> | • <b>Muhtasar & SGK Prim:</b> Her ayın <b>26'sı</b> | • <b>Geçici Vergi:</b> Üçer aylık dönemleri takip eden ayın <b>17'si</b>.<br>
+            Cezai yaptırımlarla karşılaşmamak ve mutabakatların zamanında yapılabilmesi için evraklarınızı en geç ayın <b>20'sine kadar</b> teslim ediniz.
+        </div>
     </div>
 
     <form id="evrakForm" onsubmit="submitEvrakForm(event)">
@@ -130,7 +177,7 @@
                 </div>
                 <div class="form-group">
                     <label>Vergi Kimlik No (VKN) / TCKN <span class="req">*</span></label>
-                    <input type="text" id="vkn" required placeholder="10 haneli VKN veya 11 haneli TCKN">
+                    <input type="text" id="vkn" required maxlength="11" placeholder="10 haneli VKN veya 11 haneli TCKN">
                 </div>
                 <div class="form-group">
                     <label>Teslim Eden Yetkili Adı Soyadı <span class="req">*</span></label>
@@ -168,9 +215,10 @@
 
         <!-- 2. Evrak Kontrol Listesi -->
         <div class="card">
-            <h2 class="card-title">📋 2. Aylık Evrak Kontrol Listesi (Checklist)</h2>
-            <p style="font-size: 0.82rem; color: #64748b; margin-bottom: 12px;">Teslim ettiğiniz evrak gruplarını işaretleyip yaklaşık adet/sayfa sayısını belirtiniz:</p>
-            
+            <h2 class="card-title">
+                <span>📋 2. Aylık Evrak Kontrol Listesi (Checklist)</span>
+                <small style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Teslim ettiklerinizi işaretleyiniz</small>
+            </h2>
             <div class="checklist">
                 <div class="check-item">
                     <label class="check-label" for="doc1">
@@ -181,7 +229,7 @@
                 </div>
                 <div class="check-item">
                     <label class="check-label" for="doc2">
-                        <input type="checkbox" id="doc2" value="Satış Faturaları (e-Arşiv / e-Fatura / e-SMM)" checked>
+                        <input type="checkbox" id="doc2" value="Satış Faturaları (e-Arşiv / e-Fatura / e-SMM)">
                         <span>📈 Satış Faturaları (e-Arşiv / e-Fatura / e-SMM Raporu)</span>
                     </label>
                     <input type="text" id="count2" class="doc-count" placeholder="Adet/Sayfa">
@@ -224,27 +272,71 @@
             </div>
         </div>
 
-        <!-- 3. Dosya Yükleme & Dijital Beyan -->
+        <!-- 3. Dosya Yükleme & e-Fatura XML Ayrıştırıcı -->
         <div class="card">
-            <h2 class="card-title">📁 3. Dijital Dosya Yükleme & Teslim Beyanı</h2>
-            
-            <div class="dropzone" onclick="document.getElementById('fileUpload').click()">
-                <div class="dropzone-icon">☁️</div>
-                <div style="font-weight: 700; font-size: 0.95rem; color: var(--primary);">Evrak Dosyalarınızı (PDF, Excel, ZIP veya Fiş Görselleri) Seçin</div>
-                <div style="font-size: 0.78rem; color: #64748b; margin-top: 4px;">Toplu yükleme için dosyaları tek bir .ZIP arşivi yapabilirsiniz.</div>
-                <input type="file" id="fileUpload" multiple style="display: none;" onchange="handleFileSelect(this)">
-                <div id="fileListDisplay" style="margin-top: 10px; font-weight: 600; font-size: 0.82rem; color: #1e293b;"></div>
+            <h2 class="card-title">
+                <span>📁 3. Dijital Dosya Yükleme & e-Fatura XML Ayrıştırıcı</span>
+                <span style="font-size: 0.72rem; background: var(--blue-light); color: var(--blue); padding: 3px 8px; border-radius: 6px; font-weight: 700;">UBL 2.1 TR Otomatik Ayrıştırma</span>
+            </h2>
+
+            <div class="dropzone" id="dropArea" onclick="document.getElementById('fileUpload').click()">
+                <div class="dropzone-icon">⚡</div>
+                <div style="font-weight: 700; font-size: 1rem; color: var(--primary);">e-Fatura / e-Arşiv XML, ZIP, PDF veya Ekstrelerinizi Buraya Sürükleyin</div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">veya dosya seçmek için tıklayın (.xml, .zip, .pdf, .xlsx, .jpg, .png)</div>
+                <input type="file" id="fileUpload" multiple accept=".xml,.zip,.pdf,.xlsx,.xls,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileSelect(this.files)">
+                <div id="fileListDisplay" style="margin-top: 12px; font-weight: 600; font-size: 0.84rem; color: #1e293b;"></div>
+            </div>
+
+            <!-- Parsed Invoices Preview -->
+            <div class="parsed-container" id="parsedContainer">
+                <div class="parsed-header">
+                    <b style="color: var(--primary); font-size: 0.9rem;">✅ Ayrıştırılan e-Fatura / e-Arşiv Belgeleri</b>
+                    <span id="parsedBadge" style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 4px; font-weight: 700;"></span>
+                </div>
+                <div class="parsed-stats">
+                    <div class="pstat">
+                        <div class="pstat-val" id="statInvCount">0</div>
+                        <div class="pstat-lbl">Fatura Adedi</div>
+                    </div>
+                    <div class="pstat">
+                        <div class="pstat-val" id="statMatrah">₺0,00</div>
+                        <div class="pstat-lbl">Toplam Matrah</div>
+                    </div>
+                    <div class="pstat">
+                        <div class="pstat-val" id="statKdv" style="color: var(--primary);">₺0,00</div>
+                        <div class="pstat-lbl">Hesaplanan KDV</div>
+                    </div>
+                    <div class="pstat">
+                        <div class="pstat-val" id="statTotalPayable" style="color: #0f172a;">₺0,00</div>
+                        <div class="pstat-lbl">Genel Tutar</div>
+                    </div>
+                </div>
+                <div class="invoice-table-wrapper">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>Fatura No</th>
+                                <th>Tarih</th>
+                                <th>Satıcı / Alıcı</th>
+                                <th>Matrah</th>
+                                <th>KDV Tutarı</th>
+                                <th>Ödenecek</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoiceTableBody"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="form-group full" style="margin-top: 18px;">
                 <label>Mali Müşavirinize Not / Özel Açıklama</label>
-                <textarea id="notes" placeholder="Bu ay gerçekleşen olağan dışı demirbaş alımı, kredi çekimi veya özellikli işlemleri yazınız..."></textarea>
+                <textarea id="notes" placeholder="Bu ay gerçekleşen olağan dışı demirbaş alımı, banka kredi kullanımı veya özellikli işlemleri yazınız..."></textarea>
             </div>
 
             <div style="margin-top: 18px; display: flex; align-items: flex-start; gap: 8px;">
                 <input type="checkbox" id="confirmDelivery" required style="width: 18px; height: 18px; margin-top: 2px; cursor: pointer;">
                 <label for="confirmDelivery" style="font-size: 0.82rem; color: #475569; cursor: pointer;">
-                    İşbu form ile belirtilen döneme ait tüm yasal muhasebe evraklarımı eksiksiz, gerçeğe uygun ve zamanında mali müşavirlik bürosuna teslim ettiğimi, bildirilmeyen evraklardan doğacak vergi ziyaı ve cezai sorumlulukların mükellefe ait olduğunu beyan ederim.
+                    İşbu form ile belirtilen döneme ait tüm yasal muhasebe evraklarımı ve e-fatura dökümlerimi eksiksiz, gerçeğe uygun ve zamanında mali müşavirlik bürosuna teslim ettiğimi, bildirilmeyen evraklardan doğacak vergi ziyaı ve cezai sorumlulukların mükellefe ait olduğunu beyan ederim.
                 </label>
             </div>
         </div>
@@ -259,7 +351,7 @@
         <div style="font-size: 3rem; margin-bottom: 12px;">📑</div>
         <h2 style="font-size: 1.45rem; color: var(--secondary);">Aylık Evrak Teslim Tutanağı Oluşturuldu</h2>
         <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 6px;">
-            Evrak bildiriminiz mali müşavirlik kayıtlarımıza başarıyla işlenmiştir.
+            Evrak ve e-fatura bildiriminiz mali müşavirlik kayıtlarımıza başarıyla işlenmiştir.
         </p>
 
         <div>
@@ -267,15 +359,20 @@
             <div class="receipt-badge" id="receiptNoDisplay">TESLIM-2026-00-0000</div>
         </div>
 
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; max-width: 540px; margin: 16px auto; font-size: 0.88rem; text-align: left; line-height: 1.8;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; max-width: 580px; margin: 16px auto; font-size: 0.88rem; text-align: left; line-height: 1.8;">
             <div><b>Mükellef Unvanı:</b> <span id="resCompany"></span></div>
             <div><b>Vergi Kimlik No:</b> <span id="resVkn"></span></div>
             <div><b>Teslim Dönemi:</b> <span id="resPeriod"></span></div>
             <div><b>Teslim Eden Yetkili:</b> <span id="resContact"></span> (<span id="resPhone"></span>)</div>
             <div><b>Teslim Edilen Evrak Türleri:</b><br><span id="resDocs" style="color: var(--primary); font-weight: 600;"></span></div>
+            <div id="resInvoiceSummary" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
+                <b>Ayrıştırılan e-Fatura Özeti:</b><br>
+                • Fatura Sayısı: <b id="resInvCount">0</b> adet<br>
+                • Toplam Matrah: <b id="resInvMatrah">₺0,00</b> | KDV: <b id="resInvKdv" style="color: var(--primary);">₺0,00</b> | Genel: <b id="resInvTotal">₺0,00</b>
+            </div>
         </div>
 
-        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 24px;">
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
             <button class="btn-submit" style="width: auto; padding: 10px 22px;" onclick="window.print()">🖨️ Teslim Tutanağını Yazdır / PDF İndir</button>
             <button class="btn-submit" style="width: auto; padding: 10px 22px; background: #e2e8f0; color: #334155;" onclick="location.reload()">➕ Yeni Evrak Bildirimi</button>
         </div>
@@ -284,15 +381,185 @@
 
 <script>
 let selectedFilesCount = 0;
+let parsedInvoicesList = [];
+let totalMatrah = 0.0;
+let totalKdv = 0.0;
+let totalPayable = 0.0;
 
-function handleFileSelect(input) {
-    selectedFilesCount = input.files.length;
-    const display = document.getElementById('fileListDisplay');
-    if (selectedFilesCount > 0) {
-        display.innerHTML = `✅ ${selectedFilesCount} adet dosya seçildi.`;
-    } else {
-        display.innerHTML = '';
+// Sürükle - Bırak Olayları
+const dropArea = document.getElementById('dropArea');
+['dragenter', 'dragover'].forEach(eventName => {
+    dropArea.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropArea.classList.add('dragover');
+    }, false);
+});
+['dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
+    }, false);
+});
+dropArea.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFileSelect(files);
+});
+
+async function handleFileSelect(files) {
+    if (!files || files.length === 0) return;
+    selectedFilesCount = files.length;
+    document.getElementById('fileListDisplay').innerHTML = `⏳ ${selectedFilesCount} adet dosya inceleniyor ve ayrıştırılıyor...`;
+
+    parsedInvoicesList = [];
+    totalMatrah = 0.0;
+    totalKdv = 0.0;
+    totalPayable = 0.0;
+
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fname = file.name.toLowerCase();
+
+        if (fname.endsWith('.xml')) {
+            await parseXmlFileClientOrServer(file);
+        } else if (fname.endsWith('.zip')) {
+            await parseZipFileServer(file);
+        }
     }
+
+    if (parsedInvoicesList.length > 0) {
+        renderParsedInvoices();
+        document.getElementById('doc2').checked = true;
+        document.getElementById('count2').value = `${parsedInvoicesList.length} Fatura`;
+        document.getElementById('fileListDisplay').innerHTML = `✅ ${selectedFilesCount} dosya seçildi. <b>${parsedInvoicesList.length} adet e-Fatura/e-Arşiv ayrıştırıldı!</b>`;
+    } else {
+        document.getElementById('fileListDisplay').innerHTML = `✅ ${selectedFilesCount} adet dosya başarıyla seçildi.`;
+        document.getElementById('parsedContainer').style.display = 'none';
+    }
+}
+
+// İstemci tarafında UBL-TR XML Çözümleme
+function parseXmlFileClientOrServer(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const xmlText = e.target.result;
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+                const inv = parseUblXmlDom(xmlDoc, file.name);
+                if (inv && inv.fatura_no) {
+                    parsedInvoicesList.push(inv);
+                } else {
+                    // Sunucu endpoint'ine gönder
+                    await tryServerParse(file.name, xmlText, false);
+                }
+            } catch (err) {
+                await tryServerParse(file.name, xmlText, false);
+            }
+            resolve();
+        };
+        reader.readAsText(file);
+    });
+}
+
+function parseZipFileServer(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const base64Data = e.target.result;
+            await tryServerParse(file.name, base64Data, true);
+            resolve();
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+async function tryServerParse(filename, content, isBase64) {
+    try {
+        const res = await fetch('/api/parse-efatura', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename, content, is_base64: isBase64 })
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.invoices && data.invoices.length > 0) {
+                parsedInvoicesList.push(...data.invoices);
+            }
+        }
+    } catch (err) {
+        console.warn('Sunucu parse hatası:', err);
+    }
+}
+
+// UBL-TR DOM Ayrıştırıcı (Tarayıcı İçi Sıfır Bağımlılık)
+function parseUblXmlDom(xmlDoc, filename) {
+    function getVal(tag) {
+        const els = xmlDoc.getElementsByTagName(tag);
+        if (els.length > 0) return (els[0].textContent || "").trim();
+        // namespace'li arama
+        for (let i = 0; i < xmlDoc.all?.length || 0; i++) {
+            const el = xmlDoc.all[i];
+            if (el.localName === tag) return (el.textContent || "").trim();
+        }
+        return "";
+    }
+
+    const faturaNo = getVal("ID") || filename;
+    const tarih = getVal("IssueDate") || new Date().toISOString().slice(0, 10);
+    const saticiUnvan = getVal("RegistrationName") || getVal("Name") || "Tedarikçi";
+    const matrah = parseFloat(getVal("TaxExclusiveAmount") || getVal("LineExtensionAmount") || "0") || 0;
+    const kdv = parseFloat(getVal("TaxAmount") || "0") || 0;
+    const payable = parseFloat(getVal("PayableAmount") || "0") || (matrah + kdv);
+
+    return {
+        dosya_adi: filename,
+        fatura_no: faturaNo,
+        tarih: tarih,
+        satici_unvan: saticiUnvan,
+        alici_unvan: getVal("CityName") || "Alıcı",
+        matrah: roundMoney(matrah),
+        kdv_tutar: roundMoney(kdv),
+        odenecek_tutar: roundMoney(payable)
+    };
+}
+
+function roundMoney(num) {
+    return Math.round((num + Number.EPSILON) * 100) / 100;
+}
+
+function formatTRY(amount) {
+    return '₺' + (amount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function renderParsedInvoices() {
+    totalMatrah = roundMoney(parsedInvoicesList.reduce((acc, inv) => acc + (inv.matrah || 0), 0));
+    totalKdv = roundMoney(parsedInvoicesList.reduce((acc, inv) => acc + (inv.kdv_tutar || 0), 0));
+    totalPayable = roundMoney(parsedInvoicesList.reduce((acc, inv) => acc + (inv.odenecek_tutar || 0), 0));
+
+    document.getElementById('statInvCount').innerText = parsedInvoicesList.length;
+    document.getElementById('statMatrah').innerText = formatTRY(totalMatrah);
+    document.getElementById('statKdv').innerText = formatTRY(totalKdv);
+    document.getElementById('statTotalPayable').innerText = formatTRY(totalPayable);
+    document.getElementById('parsedBadge').innerText = `${parsedInvoicesList.length} Belge`;
+
+    const tbody = document.getElementById('invoiceTableBody');
+    tbody.innerHTML = '';
+    parsedInvoicesList.forEach(inv => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><b>${inv.fatura_no}</b></td>
+            <td>${inv.tarih}</td>
+            <td><small>${inv.satici_unvan || '-'}</small></td>
+            <td>${formatTRY(inv.matrah)}</td>
+            <td style="color:var(--primary); font-weight:600;">${formatTRY(inv.kdv_tutar)}</td>
+            <td><b>${formatTRY(inv.odenecek_tutar)}</b></td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('parsedContainer').style.display = 'block';
 }
 
 async function submitEvrakForm(e) {
@@ -323,6 +590,10 @@ async function submitEvrakForm(e) {
         delivered_docs: deliveredDocs,
         notes: document.getElementById('notes').value.trim(),
         files_count: selectedFilesCount,
+        parsed_invoices: parsedInvoicesList,
+        total_matrah: totalMatrah,
+        total_kdv: totalKdv,
+        total_payable: totalPayable,
         created_at: new Date().toISOString()
     };
 
@@ -354,6 +625,14 @@ async function submitEvrakForm(e) {
     document.getElementById('resContact').innerText = payload.contact_name;
     document.getElementById('resPhone').innerText = payload.phone;
     document.getElementById('resDocs').innerHTML = '• ' + payload.delivered_docs.join('<br>• ');
+
+    if (parsedInvoicesList.length > 0) {
+        document.getElementById('resInvoiceSummary').style.display = 'block';
+        document.getElementById('resInvCount').innerText = parsedInvoicesList.length;
+        document.getElementById('resInvMatrah').innerText = formatTRY(totalMatrah);
+        document.getElementById('resInvKdv').innerText = formatTRY(totalKdv);
+        document.getElementById('resInvTotal').innerText = formatTRY(totalPayable);
+    }
 }
 </script>
 

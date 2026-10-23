@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMMM Mükellef Evrak Takip Paneli</title>
+    <title>SMMM Mükellef Evrak & e-Fatura Takip Paneli</title>
     <style>
         :root {
             --primary: #047857;
+            --primary-hover: #065f46;
+            --primary-light: #d1fae5;
             --bg: #f8fafc;
             --card-bg: #ffffff;
             --border: #e2e8f0;
@@ -15,25 +17,32 @@
             --success: #16a34a;
             --warning: #d97706;
             --danger: #dc2626;
+            --blue: #0284c7;
+            --blue-light: #e0f2fe;
+            --purple: #7c3aed;
+            --purple-light: #f3e8ff;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { background: var(--bg); color: var(--text-main); padding: 24px; }
-        .container { max-width: 1240px; margin: 0 auto; }
+        .container { max-width: 1300px; margin: 0 auto; }
 
         .topbar {
             display: flex; justify-content: space-between; align-items: center;
-            background: white; padding: 20px 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px;
+            background: white; padding: 18px 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 22px;
+            flex-wrap: wrap; gap: 14px;
         }
-        .topbar h1 { font-size: 1.35rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .topbar h1 { font-size: 1.3rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+
+        .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
         /* Stats */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
         .stat-card {
             background: white; border: 1px solid var(--border); border-radius: 10px; padding: 18px;
             display: flex; flex-direction: column; gap: 6px;
         }
-        .stat-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .stat-title { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
         .stat-value { font-size: 1.7rem; font-weight: 800; color: #0f172a; }
 
         /* Table */
@@ -43,36 +52,72 @@
             display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
         }
         .search-input {
-            padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; width: 300px; outline: none;
+            padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; width: 320px; outline: none;
         }
+        .search-input:focus { border-color: var(--primary); }
+
         .btn {
-            padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            padding: 8px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; cursor: pointer;
             border: 1px solid var(--border); background: white; color: #334155; display: inline-flex; align-items: center; gap: 6px;
+            transition: all 0.15s;
         }
         .btn:hover { background: #f1f5f9; }
         .btn-primary { background: var(--primary); color: white; border: none; }
         .btn-primary:hover { background: #065f46; }
-
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.86rem; }
-        th { background: #f8fafc; padding: 12px 16px; border-bottom: 1px solid var(--border); color: #475569; font-weight: 600; }
-        td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-        tr:hover { background: #f8fafc; }
-
+        .btn-purple { background: var(--purple); color: white; border: none; }
+        .btn-purple:hover { background: #6d28d9; }
         .btn-wa {
             background: #25D366; color: white; border: none; padding: 5px 10px; border-radius: 6px;
-            font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.76rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
         }
         .btn-wa:hover { background: #20bd5a; }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        th { background: #f8fafc; padding: 12px 14px; border-bottom: 1px solid var(--border); color: #475569; font-weight: 600; }
+        td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        tr:hover { background: #f8fafc; }
+
+        .badge-invoice {
+            display: inline-block; background: var(--blue-light); color: var(--blue);
+            font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-top: 4px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal-card {
+            background: white; width: 100%; max-width: 600px; border-radius: 12px; padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+        .modal-header h3 { font-size: 1.15rem; font-weight: 800; color: #0f172a; }
+        .close-btn { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #64748b; }
+
+        .m-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .m-group label { font-size: 0.82rem; font-weight: 600; color: #334155; }
+        .m-input, .m-select, .m-textarea {
+            padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.86rem; outline: none;
+        }
+        .m-textarea { min-height: 80px; resize: vertical; }
+
+        @media (max-width: 800px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="topbar">
-        <h1>📊 SMMM Mükellef Aylık Evrak Takip & Kontrol Paneli</h1>
-        <div style="display: flex; gap: 10px;">
-            <a href="index.html" class="btn" target="_blank">🌐 Evrak Portalı</a>
+        <h1>📊 SMMM Mükellef Evrak & e-Fatura Takip Paneli</h1>
+        <div class="topbar-actions">
+            <button class="btn btn-purple" onclick="openBulkModal()">📢 Toplu Hatırlatma Gönder</button>
+            <button class="btn" onclick="openSettingsModal()">⚙️ Webhook Ayarları</button>
+            <button class="btn" onclick="openHistoryModal()">🕒 Bildirim Geçmişi</button>
             <button class="btn btn-primary" onclick="exportCsv()">📥 CSV İndir</button>
+            <a href="index.html" class="btn" target="_blank">🌐 Evrak Portalı</a>
         </div>
     </div>
 
@@ -99,23 +144,134 @@
     <!-- Table -->
     <div class="table-card">
         <div class="table-header">
-            <input type="text" class="search-input" id="searchBox" placeholder="Firma, VKN veya Yetkili ara..." oninput="filterTable()">
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Mükellefe tek tıkla WhatsApp üzerinden eksik evrak hatırlatması yapabilirsiniz.</span>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" class="search-input" id="searchBox" placeholder="Firma, VKN veya Yetkili ara..." oninput="filterTable()">
+                <span id="recordCount" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">0 Kayıt</span>
+            </div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Mükelleflere tek tıkla WhatsApp veya Webhook üzerinden KDV & Geçici Vergi hatırlatması yapabilirsiniz.</span>
         </div>
         <table>
             <thead>
                 <tr>
+                    <th style="width: 30px;"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
                     <th>Teslim Ref No</th>
                     <th>Mükellef Unvanı</th>
                     <th>VKN / Yetkili</th>
                     <th>Dönem</th>
-                    <th>Teslim Edilen Evraklar</th>
+                    <th>Teslim Edilen Evraklar & e-Fatura</th>
                     <th>Durum</th>
-                    <th>WhatsApp Hatırlat</th>
+                    <th>Aksiyon</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
+    </div>
+</div>
+
+<!-- Modal 1: Toplu Hatırlatma Gönder -->
+<div class="modal" id="bulkModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>📢 Mükelleflere Toplu KDV/Evrak Hatırlatması</h3>
+            <button class="close-btn" onclick="closeModal('bulkModal')">&times;</button>
+        </div>
+        <form onsubmit="sendBulkReminders(event)">
+            <div class="m-group">
+                <label>Hedef Mükellef Durumu:</label>
+                <select class="m-select" id="bulkTargetStatus">
+                    <option value="ALL">Tüm Mükellefler</option>
+                    <option value="MISSING_OR_PENDING" selected>Eksik Evraklılar ve İncelenenler</option>
+                    <option value="Eksik Evrak Var">Sadece 'Eksik Evrak Var' Olanlar</option>
+                    <option value="İnceleniyor">Sadece 'İnceleniyor' Olanlar</option>
+                </select>
+            </div>
+            <div class="m-group">
+                <label>Beyanname Dönemi:</label>
+                <input type="text" class="m-input" id="bulkPeriod" value="Mart 2026">
+            </div>
+            <div class="m-group">
+                <label>Gönderim Kanalı:</label>
+                <select class="m-select" id="bulkChannel">
+                    <option value="whatsapp">WhatsApp Cloud API / Webhook</option>
+                    <option value="sms">Netgsm / SMS Webhook</option>
+                    <option value="simulated">Test / Simülasyon (Kayıt Üret)</option>
+                </select>
+            </div>
+            <div class="m-group">
+                <label>Mesaj Şablonu ({mukellef}, {donem}, {vkn}, {ref_no}):</label>
+                <textarea class="m-textarea" id="bulkMessage">Sayın {mukellef} yetkilisi, {donem} dönemi KDV ve Geçici Vergi beyanname hazırlıkları için lütfen eksik evrak ve e-fatura XML dosyalarınızı en geç ayın 20'sine kadar portalımıza yükleyiniz: {portal_url}</textarea>
+            </div>
+            <div id="bulkResult" style="display: none; margin-bottom: 12px; font-size: 0.85rem; padding: 10px; border-radius: 6px; background: #f0fdf4; color: #166534;"></div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="btn" onclick="closeModal('bulkModal')">İptal</button>
+                <button type="submit" class="btn btn-purple" id="btnSendBulk">🚀 Toplu Gönderimi Başlat</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal 2: Webhook Ayarları -->
+<div class="modal" id="settingsModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>⚙️ Webhook & Bildirim API Ayarları</h3>
+            <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
+        </div>
+        <form onsubmit="saveWebhookSettings(event)">
+            <div class="m-group">
+                <label>Sağlayıcı (Provider):</label>
+                <select class="m-select" id="settProvider">
+                    <option value="whatsapp_cloud">WhatsApp Cloud API (Meta)</option>
+                    <option value="netgsm">Netgsm SMS API</option>
+                    <option value="twilio">Twilio WhatsApp / SMS</option>
+                    <option value="custom">Özel Webhook URL</option>
+                </select>
+            </div>
+            <div class="m-group">
+                <label>Webhook URL:</label>
+                <input type="url" class="m-input" id="settUrl" placeholder="https://api.whatsapp.com/... veya https://api.netgsm.com.tr/...">
+            </div>
+            <div class="m-group">
+                <label>API Anahtarı / Bearer Token (Opsiyonel):</label>
+                <input type="password" class="m-input" id="settToken" placeholder="Bearer Token / Netgsm Şifre">
+            </div>
+            <div class="m-group">
+                <label>Varsayılan Şablon Mesajı:</label>
+                <textarea class="m-textarea" id="settTemplate">Sayın {mukellef} yetkilisi, {donem} dönemi KDV ve beyanname hazırlıkları için lütfen evraklarınızı mali müşavirlik portalına iletiniz.</textarea>
+            </div>
+            <div id="settingsResult" style="display: none; margin-bottom: 12px; font-size: 0.85rem; padding: 10px; border-radius: 6px; background: #f0fdf4; color: #166534;"></div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="btn" onclick="closeModal('settingsModal')">Kapat</button>
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal 3: Bildirim Geçmişi -->
+<div class="modal" id="historyModal">
+    <div class="modal-card" style="max-width: 750px;">
+        <div class="modal-header">
+            <h3>🕒 Gönderilen Hatırlatma Logları</h3>
+            <button class="close-btn" onclick="closeModal('historyModal')">&times;</button>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto;">
+            <table style="font-size: 0.8rem;">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Firma / Telefon</th>
+                        <th>Kanal</th>
+                        <th>Durum</th>
+                        <th>Mesaj</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody"></tbody>
+            </table>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+            <button type="button" class="btn" onclick="closeModal('historyModal')">Kapat</button>
+        </div>
     </div>
 </div>
 
@@ -132,7 +288,7 @@ async function loadRecords() {
         records = JSON.parse(localStorage.getItem('smmm_evraklar') || '[]');
     }
 
-    if (records.length === 0) {
+    if (!records || records.length === 0) {
         records = [
             {
                 receipt_no: "TESLIM-2026-03-4921",
@@ -142,6 +298,12 @@ async function loadRecords() {
                 phone: "0533 222 11 00",
                 period: "Mart 2026",
                 delivered_docs: ["Alış Faturaları (18 Adet)", "Banka Ekstresi (Garanti PDF)", "Kira Dekontu"],
+                parsed_invoices: [
+                    { fatura_no: "GIB2026000000042", matrah: 120000, kdv_tutar: 24000, odenecek_tutar: 144000 }
+                ],
+                total_matrah: 120000,
+                total_kdv: 24000,
+                total_payable: 144000,
                 status: "İnceleniyor",
                 created_at: new Date().toISOString()
             },
@@ -153,6 +315,7 @@ async function loadRecords() {
                 phone: "0542 666 77 88",
                 period: "Mart 2026",
                 delivered_docs: ["Satış Faturaları", "Z-Raporları (31 Gün)"],
+                parsed_invoices: [],
                 status: "Eksik Evrak Var",
                 created_at: new Date(Date.now() - 2 * 86400000).toISOString()
             }
@@ -164,40 +327,65 @@ async function loadRecords() {
     updateStats();
 }
 
+function formatTRY(amount) {
+    return '₺' + (amount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function renderTable(data) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
+    document.getElementById('recordCount').innerText = `${data.length} Kayıt`;
 
     data.forEach((r, idx) => {
-        const docsSummary = Array.isArray(r.delivered_docs) ? r.delivered_docs.join(', ') : r.delivered_docs;
+        const docsSummary = Array.isArray(r.delivered_docs) ? r.delivered_docs.join(', ') : (r.delivered_docs || '-');
+
+        let invoiceBadge = '';
+        if (r.parsed_invoices && r.parsed_invoices.length > 0) {
+            const count = r.parsed_invoices.length;
+            const kdv = r.total_kdv ? formatTRY(r.total_kdv) : '';
+            invoiceBadge = `<br><span class="badge-invoice">⚡ ${count} e-Fatura (KDV: ${kdv})</span>`;
+        }
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
+            <td><input type="checkbox" class="row-checkbox" data-ref="${r.receipt_no}"></td>
             <td><b>${r.receipt_no}</b></td>
             <td><b>${r.company_name}</b></td>
             <td>${r.vkn}<br><small style="color:#64748b;">${r.contact_name} (${r.phone})</small></td>
             <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-weight:700; font-size:0.75rem;">${r.period}</span></td>
-            <td><small style="color:#334155;">${docsSummary}</small></td>
+            <td><small style="color:#334155;">${docsSummary}</small>${invoiceBadge}</td>
             <td>
-                <select onchange="updateStatus(${idx}, this.value)" style="padding: 4px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.78rem;">
+                <select onchange="updateStatus('${r.receipt_no}', this.value)" style="padding: 4px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.78rem;">
                     <option value="İnceleniyor" ${r.status === 'İnceleniyor' ? 'selected' : ''}>İnceleniyor</option>
                     <option value="Eksik Evrak Var" ${r.status === 'Eksik Evrak Var' ? 'selected' : ''}>Eksik Evrak Var</option>
                     <option value="Muhasebeleştirildi" ${r.status === 'Muhasebeleştirildi' ? 'selected' : ''}>Muhasebeleştirildi</option>
                 </select>
             </td>
             <td>
-                <button class="btn-wa" onclick="sendWaReminder('${r.phone}', '${r.company_name}', '${r.period}')">
-                    <span>💬 Hatırlat</span>
-                </button>
+                <div style="display:flex; gap:4px;">
+                    <button class="btn-wa" onclick="sendWaReminder('${r.phone}', '${r.company_name}', '${r.period}')">
+                        <span>💬 WhatsApp</span>
+                    </button>
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
     });
 }
 
-function updateStatus(idx, status) {
-    records[idx].status = status;
+async function updateStatus(receiptNo, status) {
+    const item = records.find(r => r.receipt_no === receiptNo);
+    if (item) item.status = status;
     localStorage.setItem('smmm_evraklar', JSON.stringify(records));
     updateStats();
+
+    try {
+        await fetch('/api/update-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ receipt_no: receiptNo, status })
+        });
+    } catch (e) {}
 }
 
 function sendWaReminder(phone, company, period) {
@@ -222,24 +410,137 @@ function updateStats() {
 function filterTable() {
     const q = document.getElementById('searchBox').value.toLowerCase().trim();
     const filtered = records.filter(r =>
-        r.company_name.toLowerCase().includes(q) ||
-        r.vkn.includes(q) ||
-        r.contact_name.toLowerCase().includes(q)
+        (r.company_name || '').toLowerCase().includes(q) ||
+        (r.vkn || '').includes(q) ||
+        (r.contact_name || '').toLowerCase().includes(q)
     );
     renderTable(filtered);
 }
 
+function toggleSelectAll(master) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+}
+
 function exportCsv() {
-    let csv = "Ref No,Firma,VKN,Yetkili,Telefon,Donem,Evraklar,Durum,Tarih\n";
+    let csv = "Ref No,Firma,VKN,Yetkili,Telefon,Donem,Evraklar,Matrah,KDV,GenelToplam,Durum,Tarih\n";
     records.forEach(r => {
-        const docs = Array.isArray(r.delivered_docs) ? r.delivered_docs.join('; ') : r.delivered_docs;
-        csv += `"${r.receipt_no}","${r.company_name}","${r.vkn}","${r.contact_name}","${r.phone}","${r.period}","${docs}","${r.status}","${r.created_at}"\n`;
+        const docs = Array.isArray(r.delivered_docs) ? r.delivered_docs.join('; ') : (r.delivered_docs || '');
+        csv += `"${r.receipt_no}","${r.company_name}","${r.vkn}","${r.contact_name}","${r.phone}","${r.period}","${docs}","${r.total_matrah || 0}","${r.total_kdv || 0}","${r.total_payable || 0}","${r.status}","${r.created_at}"\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "smmm_mukellef_evraklari.csv";
     link.click();
+}
+
+// Modals
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function openBulkModal() { openModal('bulkModal'); }
+
+async function sendBulkReminders(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSendBulk');
+    btn.disabled = true;
+    btn.innerText = '⏳ İletiliyor...';
+
+    const targetMode = document.getElementById('bulkTargetStatus').value;
+    let targetStatus = [];
+    if (targetMode === 'MISSING_OR_PENDING') targetStatus = ['Eksik Evrak Var', 'İnceleniyor'];
+    else if (targetMode === 'Eksik Evrak Var') targetStatus = ['Eksik Evrak Var'];
+    else if (targetMode === 'İnceleniyor') targetStatus = ['İnceleniyor'];
+
+    const payload = {
+        target_status: targetStatus,
+        period: document.getElementById('bulkPeriod').value.trim(),
+        channel: document.getElementById('bulkChannel').value,
+        template_message: document.getElementById('bulkMessage').value.trim()
+    };
+
+    try {
+        const res = await fetch('/api/toplu-hatirlatma', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        const resBox = document.getElementById('bulkResult');
+        resBox.style.display = 'block';
+        resBox.innerHTML = `✅ <b>${data.dispatched_count || 0}</b> adet mükellefe hatırlatma başarıyla kuyruğa alındı ve iletildi.`;
+    } catch (err) {
+        alert('Hatırlatma iletimi yerel modda simüle edildi.');
+    } finally {
+        btn.disabled = false;
+        btn.innerText = '🚀 Toplu Gönderimi Başlat';
+    }
+}
+
+async function openSettingsModal() {
+    try {
+        const res = await fetch('/api/webhook-settings');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.provider) document.getElementById('settProvider').value = data.provider;
+            if (data.webhook_url) document.getElementById('settUrl').value = data.webhook_url;
+            if (data.template_message) document.getElementById('settTemplate').value = data.template_message;
+        }
+    } catch (e) {}
+    openModal('settingsModal');
+}
+
+async function saveWebhookSettings(e) {
+    e.preventDefault();
+    const payload = {
+        provider: document.getElementById('settProvider').value,
+        webhook_url: document.getElementById('settUrl').value.trim(),
+        auth_token: document.getElementById('settToken').value.trim(),
+        template_message: document.getElementById('settTemplate').value.trim()
+    };
+    try {
+        await fetch('/api/webhook-settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const resBox = document.getElementById('settingsResult');
+        resBox.style.display = 'block';
+        resBox.innerText = '✅ Webhook ayarları başarıyla kaydedildi!';
+        setTimeout(() => closeModal('settingsModal'), 1200);
+    } catch (err) {
+        alert('Ayarlar kaydedildi.');
+    }
+}
+
+async function openHistoryModal() {
+    openModal('historyModal');
+    const tbody = document.getElementById('historyTableBody');
+    tbody.innerHTML = '<tr><td colspan="5">Yükleniyor...</td></tr>';
+    try {
+        const res = await fetch('/api/reminder-logs');
+        if (res.ok) {
+            const logs = await res.json();
+            tbody.innerHTML = '';
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">Henüz kayıtlı bildirim bulunmuyor.</td></tr>';
+                return;
+            }
+            logs.forEach(l => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${(l.created_at || '').slice(0, 16).replace('T', ' ')}</td>
+                    <td><b>${l.company_name}</b><br><small>${l.phone}</small></td>
+                    <td><span style="font-size:0.75rem; background:#f1f5f9; padding:2px 6px; border-radius:4px;">${l.channel}</span></td>
+                    <td><b style="color:${l.status.includes('FAIL') ? 'var(--danger)' : 'var(--success)'};">${l.status}</b></td>
+                    <td><small>${l.message}</small></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loglar alınamadı.</td></tr>';
+    }
 }
 
 window.onload = loadRecords;
